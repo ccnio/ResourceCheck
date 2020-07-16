@@ -1,0 +1,4 @@
+include ':ResourceCheck'
+include ':app'
+include ':MyLib'
+rootProject.name = "Resource"
