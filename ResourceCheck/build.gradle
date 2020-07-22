@@ -1,5 +1,6 @@
 apply plugin: 'groovy'
 apply plugin: 'maven'
+apply plugin: 'com.novoda.bintray-release'
 
 repositories {
     jcenter()
@@ -21,3 +22,14 @@ uploadArchives {
         }
     }
 }
+publish {
+    userOrg = 'edreamoon' //bintray.com 账号用户名
+    repoName = 'ResourcePlugin' //仓库名
+    groupId = 'com.ccnio.plugin' //唯一 id，最后依赖的库名组成部分之一
+    artifactId = 'resource-check' //对应jcenter的包名
+    publishVersion = '0.0.3' //版本号
+    desc = 'for android resource detect' //描述
+    website = 'https://github.com/edreamoon' //开源项目网址
+}
+
+//gradle clean build bintrayUpload -PbintrayUser=edreamoon -PbintrayKey=xxxx -PdryRun=false

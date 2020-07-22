@@ -36,7 +36,9 @@ class ResourcePlugin implements Plugin<Project> {
                             }
                         }
                     }
-                    printConflict(project.buildDir.getAbsolutePath() + File.separator + "conflict_resource.log")
+                    def outPath = project.buildDir.getAbsolutePath() + File.separator + "conflict_resource.log"
+                    Logger.log(TAG, "output file = $outPath")
+                    printConflict(outPath)
                 }
 
                 resourceTask.group = "resource"
@@ -47,9 +49,13 @@ class ResourcePlugin implements Plugin<Project> {
 
     }
 
-    def printConflict(String file) {
-        def printWriter = new File(file).newPrintWriter()
-        Logger.log(TAG, "out put file = $file")
+    def printConflict(String outPutPath) {
+        def file = new File(outPutPath)
+        def dir = file.getParentFile()
+        if(!dir.exists()) dir.mkdirs()
+        if (!file.exists()) file.createNewFile()
+        def printWriter = file.newPrintWriter()
+        Logger.log(TAG, "out put file = $outPutPath")
         printWriter.write("**************** update at ${Calendar.getInstance().toLocalDateTime()} **************** \n\n")
         for (type in resourceTypeMap) {
             Logger.log(TAG, "**************** key = ${type.key} *************** + ${type.key != "string"} ")
@@ -124,6 +130,7 @@ class ResourcePlugin implements Plugin<Project> {
                     resourceMap.put(res.id, values)
                     Logger.log(TAG, "values null")
                 }
+                Logger.log(TAG, "values size = ${values.size()}  $values")
                 values.add(res)
             }
         }
