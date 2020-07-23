@@ -18,7 +18,7 @@ uploadArchives {
             repository(url: uri('/home/lijf/LocalRepo'))
             pom.groupId = "com.ccnio.plugin"
             pom.artifactId = "resource-check"
-            pom.version = "0.0.2"
+            pom.version = "0.0.4"
         }
     }
 }
@@ -27,7 +27,7 @@ publish {
     repoName = 'ResourcePlugin' //仓库名
     groupId = 'com.ccnio.plugin' //唯一 id，最后依赖的库名组成部分之一
     artifactId = 'resource-check' //对应jcenter的包名
-    publishVersion = '0.0.3' //版本号
+    publishVersion = '0.0.4' //版本号
     desc = 'for android resource detect' //描述
     website = 'https://github.com/edreamoon' //开源项目网址
 }

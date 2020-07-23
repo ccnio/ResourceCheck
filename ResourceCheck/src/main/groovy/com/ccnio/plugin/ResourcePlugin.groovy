@@ -2,6 +2,7 @@ package com.ccnio.plugin
 
 import com.android.build.gradle.AppExtension
 import com.android.build.gradle.LibraryExtension
+import com.ccnio.plugin.data.ResourceConfig
 import com.ccnio.plugin.data.ResourceInfo
 import com.ccnio.plugin.utils.Constants
 import com.ccnio.plugin.utils.Logger
@@ -15,11 +16,17 @@ class ResourcePlugin implements Plugin<Project> {
 
     @Override
     void apply(Project project) {
+        project.extensions.create('resourceConfig', ResourceConfig)
+        ResourceConfig config = project.resourceConfig
+
         boolean isApplication = project.plugins.hasPlugin(Constants.PLUGIN_APPLICATION)
         def variants = isApplication ? ((AppExtension) (project.property("android"))).applicationVariants :
                 ((LibraryExtension) (project.property("android"))).libraryVariants
 
         project.afterEvaluate {
+            Logger.log(TAG, "resource enable = $config.enable ")
+            if (!config.enable) return
+
             variants.forEach { variant ->
 
                 def taskName = "checkResource${variant.name.capitalize()}"
@@ -52,7 +59,7 @@ class ResourcePlugin implements Plugin<Project> {
     def printConflict(String outPutPath) {
         def file = new File(outPutPath)
         def dir = file.getParentFile()
-        if(!dir.exists()) dir.mkdirs()
+        if (!dir.exists()) dir.mkdirs()
         if (!file.exists()) file.createNewFile()
         def printWriter = file.newPrintWriter()
         Logger.log(TAG, "out put file = $outPutPath")

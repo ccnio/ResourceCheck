@@ -10,7 +10,7 @@ buildscript {
     dependencies {
         classpath "com.android.tools.build:gradle:4.0.1"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath 'com.ccnio.plugin:resource-check:0.0.2'
+        classpath 'com.ccnio.plugin:resource-check:0.0.4'
         classpath 'com.novoda:bintray-release:0.9.1'
     }
 }
@@ -21,7 +21,6 @@ allprojects {
         jcenter()
         maven { url uri("/home/lijf/LocalRepo") }
     }
-    //skip Test tasks
     gradle.taskGraph.whenReady {
         tasks.each { task ->
             if (task.name.contains("javadoc")) {
