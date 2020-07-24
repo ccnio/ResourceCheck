@@ -13,6 +13,7 @@ import org.gradle.api.Project
 class ResourcePlugin implements Plugin<Project> {
     private final String TAG = "ResourcePlugin"
     private def resourceTypeMap = new HashMap<String, HashMap<String, HashSet<ResourceInfo>>>()
+    private def whitelist = new HashSet<String>()
 
     @Override
     void apply(Project project) {
@@ -24,8 +25,9 @@ class ResourcePlugin implements Plugin<Project> {
                 ((LibraryExtension) (project.property("android"))).libraryVariants
 
         project.afterEvaluate {
-            Logger.log(TAG, "resource enable = $config.enable ")
+            Logger.log(TAG, "resource enable = $config.enable;")
             if (!config.enable) return
+            readWhiteList(project.rootDir.path)
 
             variants.forEach { variant ->
 
@@ -43,7 +45,7 @@ class ResourcePlugin implements Plugin<Project> {
                             }
                         }
                     }
-                    def outPath = project.buildDir.getAbsolutePath() + File.separator + "conflict_resource.log"
+                    def outPath = project.buildDir.getAbsolutePath() + File.separator + Constants.OUTPUT_FILE
                     Logger.log(TAG, "output file = $outPath")
                     printConflict(outPath)
                 }
@@ -56,27 +58,64 @@ class ResourcePlugin implements Plugin<Project> {
 
     }
 
+    def readWhiteList(String dir) {
+        def file = new File(dir + File.separator + Constants.WHITELIST_FILE)
+        Logger.log(TAG, "readWhiteList file = ${file.path}")
+        if (!file.exists()) return
+
+        file.eachLine {
+            Logger.log(TAG, "readWhiteList $it")
+            whitelist.add(it)
+        }
+    }
+
     def printConflict(String outPutPath) {
         def file = new File(outPutPath)
         def dir = file.getParentFile()
         if (!dir.exists()) dir.mkdirs()
         if (!file.exists()) file.createNewFile()
         def printWriter = file.newPrintWriter()
-        Logger.log(TAG, "out put file = $outPutPath")
         printWriter.write("**************** update at ${Calendar.getInstance().toLocalDateTime()} **************** \n\n")
         for (type in resourceTypeMap) {
             Logger.log(TAG, "**************** key = ${type.key} *************** + ${type.key != "string"} ")
-            boolean hasDivider = false
+
+            boolean whiteDivider = false, typeDivider = false
+            for (i in whitelist) {
+                if (type.value.containsKey(i) && type.value.get(i).size() > 1) {
+                    if (!whiteDivider) {
+                        printWriter.write("**************** ${type.key} ****************\n")
+                        printWriter.write("<<< conflict but in whitelist >>>\n")
+                        whiteDivider = true
+                        typeDivider = true
+                    }
+                    printWriter.write("name: $i\n")
+                    for (v in type.value.get(i)) {
+                        printWriter.write("${v.toString()}\n")
+                    }
+                    printWriter.write("\n")
+                }
+            }
+
+            boolean conflictDivider = false
             for (values in type.value) {
                 if (values.value.size() < 2) continue
-                if (!hasDivider) {
+                def name = values.key
+                if (whitelist.contains(name)) continue
+
+                if (!typeDivider) {
                     printWriter.write("**************** ${type.key} ****************\n")
-                    hasDivider = true
+                    typeDivider = true
                 }
-                Logger.log(TAG, "name: ${values.key}")
-                printWriter.write("name: ${values.key}\n")
+
+                if (!conflictDivider) {
+                    printWriter.write("<<< conflict >>>\n")
+                    conflictDivider = true
+                }
+
+
+                Logger.log(TAG, "name: ${name}")
+                printWriter.write("name: ${name}\n")
                 for (i in values.value) {
-                    Logger.log(TAG, "iterate values = $i")
                     printWriter.write("${i.toString()}\n")
                 }
                 printWriter.write("\n")
@@ -131,13 +170,13 @@ class ResourcePlugin implements Plugin<Project> {
                 }
 
                 def res = new ResourceInfo(name, value, file.path)
+
                 HashSet values = resourceMap.get(res.id)
                 if (values == null) {
                     values = new HashSet<ResourceInfo>()
                     resourceMap.put(res.id, values)
                     Logger.log(TAG, "values null")
                 }
-                Logger.log(TAG, "values size = ${values.size()}  $values")
                 values.add(res)
             }
         }
